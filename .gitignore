@@ -1,0 +1,15 @@
+__pycache__/
+*.pyc
+*.pyo
+.env
+*.egg-info/
+dist/
+build/
+data/database.json
+*.pdf
+*.xlsx
+.streamlit/secrets.toml
+venv/
+.venv/
+pdf_generator2.py
+pdf_generator3.py
