@@ -28,7 +28,7 @@ PRODUCTS_DB_FILE    = os.path.join(BASE_DIR, "data", "products_db.json")
 # ── Remote image / data URLs ─────────────────────────────────────────────────
 GITHUB_RAW_BASE  = "https://raw.githubusercontent.com/jitu0426/Hem-Export-Catalogue/main/"
 CASE_SIZE_PATH   = f"{GITHUB_RAW_BASE}Case%20Size.xlsx"
-COVER_IMAGE_URL  = "https://res.cloudinary.com/dnoepbfbr/image/upload/v1770703751/Cover_Page.jpg"
+COVER_IMAGE_URL  = "https://res.cloudinary.com/dnoepbfbr/image/upload/v1771851422/Cover_page_2.jpg"
 JOURNEY_IMAGE_URL= "https://res.cloudinary.com/dnoepbfbr/image/upload/v1770703751/image-journey.jpg"
 
 # ── Excel catalogue file paths ───────────────────────────────────────────────
