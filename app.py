@@ -6,12 +6,12 @@ Run with:  streamlit run app.py
 Architecture:
   app.py              → bootstraps services, layout, tabs
   config.py           → all paths & constants
-  styles.py           → full luxury dark-gold CSS
+  styles.py           → HEM Brand Light Theme CSS (web UI only)
   cloudinary_client.py→ Cloudinary SDK (images, DB backup)
   database.py         → JSON DB (cart, overrides, custom products)
   data_loader.py      → Excel + Cloudinary image pipeline
   cart.py             → cart add / remove / clear helpers
-  pdf_generator.py    → PDF (WeasyPrint/pdfkit) + Excel export
+  pdf_generator.py    → PDF (WeasyPrint/pdfkit) + Excel export — PLAIN WHITE theme
   ui/sidebar.py       → sidebar: templates, sync, info
   ui/tab_filter.py    → Tab 1: browse & filter products
   ui/tab_review.py    → Tab 2: review & edit cart
