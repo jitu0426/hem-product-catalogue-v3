@@ -283,7 +283,7 @@ html, body {{
   background:#ffffff !important;
 }}
 .cover-page img {{
-  width:100% !important; height:100% !important; object-fit:cover !important;
+  width:100% !important; height:100% !important; object-fit:cover !important; display:block !important;
 }}
 
 /* ── Catalogue content wrapper ── */
