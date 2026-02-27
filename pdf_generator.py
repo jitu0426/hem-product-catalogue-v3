@@ -202,7 +202,7 @@ def generate_table_of_contents_html(df_sorted: pd.DataFrame) -> str:
                     rep_img = s
                     break
             bg = (
-                f"background-image:url('data:image/png;base64,{rep_img}') !important;"
+                f"background-image:url('data:image/jpeg;base64,{rep_img}') !important;"
                 if rep_img
                 else "background-color:#f8f8f8 !important;"
             )
@@ -238,11 +238,22 @@ def generate_pdf_html(df_sorted: pd.DataFrame, customer_name: str,
                 return get_image_as_base64_str(p, resize=resize, max_size=max_size)
         return ""
 
-    # Load images
-    cover_b64     = get_image_as_base64_str(COVER_IMAGE_URL) or load_img("cover page.png")
-    story_b64     = get_image_as_base64_str(JOURNEY_IMAGE_URL, max_size=(600, 600)) or \
-                    load_img("image-journey.png", specific=STORY_IMG_1_PATH,
+    # Load images — try Cloudinary URL first, fall back to local file
+    cover_b64 = get_image_as_base64_str(COVER_IMAGE_URL)
+    if not cover_b64:
+        logger.warning("Cover image: Cloudinary URL failed, using local fallback")
+        cover_b64 = load_img("cover page.png")
+    else:
+        logger.info("Cover image: loaded from Cloudinary URL")
+
+    story_b64 = get_image_as_base64_str(JOURNEY_IMAGE_URL, max_size=(600, 600))
+    if not story_b64:
+        logger.warning("Journey image: Cloudinary URL failed, using local fallback")
+        story_b64 = load_img("image-journey.png", specific=STORY_IMG_1_PATH,
                              resize=True, max_size=(600, 600))
+    else:
+        logger.info("Journey image: loaded from Cloudinary URL")
+
     watermark_b64 = load_img("watermark.png")
 
     # ── NUCLEAR WHITE CSS — every rule uses !important ────────────────────
@@ -268,7 +279,7 @@ html, body {{
 #wm {{
   position:fixed !important; top:0 !important; left:0 !important;
   width:100% !important; height:100% !important; z-index:-1 !important;
-  background-image:url('data:image/png;base64,{watermark_b64}') !important;
+  background-image:url('data:image/jpeg;base64,{watermark_b64}') !important;
   background-repeat:repeat !important; background-size:cover !important;
   opacity:0.03 !important;
   background-color:transparent !important;
@@ -415,7 +426,7 @@ h1.cat-heading + .cat-block {{
 <body style="margin:0 !important;padding:0 !important;background:#ffffff !important;color:#222222 !important;">
 <div id="wm"></div>
 <div class="cover-page">
-  <img src="data:image/png;base64,{cover_b64}" alt="Cover" />
+  <img src="data:image/jpeg;base64,{cover_b64}" alt="Cover" />
 </div>
 """
 
