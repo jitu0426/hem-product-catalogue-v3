@@ -8,6 +8,7 @@ import base64
 import time
 import json
 import logging
+from concurrent.futures import ThreadPoolExecutor, as_completed
 import requests
 from PIL import Image
 
@@ -21,6 +22,13 @@ from config import (
 )
 
 logger = logging.getLogger(__name__)
+
+# Reusable HTTP session for connection pooling (avoids TCP/TLS handshake per image)
+_http_session = requests.Session()
+_http_session.headers.update({"User-Agent": "Mozilla/5.0"})
+adapter = requests.adapters.HTTPAdapter(pool_connections=20, pool_maxsize=20)
+_http_session.mount("https://", adapter)
+_http_session.mount("http://", adapter)
 
 # --- Initialize Cloudinary ---
 def init_cloudinary():
@@ -36,7 +44,7 @@ def init_cloudinary():
     )
 
 # --- Image Processing ---
-def get_image_as_base64_str(url_or_path, resize=None, max_size=None, retries=2):
+def get_image_as_base64_str(url_or_path, resize=None, max_size=None, retries=1):
     """Download/open an image and return it as a base64-encoded JPEG string.
     Supports both HTTP URLs and local file paths.
     Includes retry logic for network fetches."""
@@ -46,8 +54,7 @@ def get_image_as_base64_str(url_or_path, resize=None, max_size=None, retries=2):
         try:
             img = None
             if str(url_or_path).startswith("http"):
-                headers = {"User-Agent": "Mozilla/5.0"}
-                response = requests.get(url_or_path, headers=headers, timeout=8)
+                response = _http_session.get(url_or_path, timeout=5)
                 if response.status_code != 200:
                     return ""
                 img = Image.open(io.BytesIO(response.content))
@@ -64,20 +71,40 @@ def get_image_as_base64_str(url_or_path, resize=None, max_size=None, retries=2):
             buffered = io.BytesIO()
             if img.mode != "RGB":
                 img = img.convert("RGB")
-            img.save(buffered, format="JPEG", quality=85)
+            img.save(buffered, format="JPEG", quality=75)
             return base64.b64encode(buffered.getvalue()).decode()
 
         except requests.exceptions.Timeout:
             if attempt < retries:
-                time.sleep(0.5 * (attempt + 1))
-                logger.info(f"Retrying image fetch (attempt {attempt + 2}): {url_or_path}")
+                time.sleep(0.3 * (attempt + 1))
                 continue
-            logger.warning(f"Image fetch timed out after {retries + 1} attempts: {url_or_path}")
+            logger.warning(f"Image fetch timed out: {url_or_path}")
             return ""
         except Exception as e:
             logger.warning(f"Error processing image {url_or_path}: {e}")
             return ""
     return ""
+
+
+def batch_download_images(url_list, max_workers=16):
+    """Download multiple images in parallel and return a dict of {url: base64_str}.
+    Uses ThreadPoolExecutor for concurrent HTTP requests."""
+    results = {}
+    if not url_list:
+        return results
+
+    def _fetch_one(url):
+        return url, get_image_as_base64_str(url, max_size=None)
+
+    with ThreadPoolExecutor(max_workers=max_workers) as executor:
+        futures = {executor.submit(_fetch_one, url): url for url in url_list}
+        for future in as_completed(futures):
+            try:
+                url, b64 = future.result()
+                results[url] = b64
+            except Exception:
+                results[futures[future]] = ""
+    return results
 
 
 # --- Cloudinary Database Backup ---
@@ -159,7 +186,6 @@ def fetch_all_cloudinary_resources():
     Returns a list of resource dicts."""
     resources = []
     try:
-        cloudinary.api.ping()
         next_cursor = None
         while True:
             res = cloudinary.api.resources(
