@@ -78,8 +78,13 @@ migrate_old_custom_items()
 # ── Load product data (cached; bust cache by updating data_timestamp) ─────
 products_df = load_data_cached(st.session_state.data_timestamp)
 
-# Rebuild fast ProductID → row lookup map (set_index + to_dict is 10-50x faster than iterrows)
-st.session_state.master_pid_map = products_df.set_index("ProductID").to_dict("index")
+# Rebuild fast ProductID → row lookup map
+# drop_duplicates keeps the last occurrence (same behaviour as the old iterrows loop)
+st.session_state.master_pid_map = (
+    products_df.drop_duplicates(subset="ProductID", keep="last")
+    .set_index("ProductID")
+    .to_dict("index")
+)
 
 # ── Sidebar ───────────────────────────────────────────────────────────────
 from ui.sidebar import render_sidebar
