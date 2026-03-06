@@ -13,6 +13,7 @@ from config import (
 )
 from cloudinary_client import (
     get_image_as_base64_str, fetch_all_cloudinary_resources,
+    batch_download_images,
 )
 from database import load_products_db
 
@@ -151,7 +152,8 @@ def load_data_cached(_dummy_timestamp):
                             if field in df.columns:
                                 df.loc[mask, field] = value
 
-            # CLOUDINARY IMAGE MATCHING
+            # CLOUDINARY IMAGE MATCHING — collect URLs first, download in parallel later
+            index_to_url = {}
             if cloudinary_map:
                 for index, row in df.iterrows():
                     cat = clean_key(str(row.get('Catalogue', '')))
@@ -196,11 +198,18 @@ def load_data_cached(_dummy_timestamp):
 
                     if found_url:
                         optimized_url = found_url.replace(
-                            "/upload/", "/upload/w_800,q_auto/"
+                            "/upload/", "/upload/w_400,q_auto/"
                         )
-                        df.loc[index, "ImageB64"] = get_image_as_base64_str(
-                            optimized_url, max_size=None
-                        )
+                        index_to_url[index] = optimized_url
+
+            # BATCH DOWNLOAD all matched images in parallel (16 threads)
+            if index_to_url:
+                unique_urls = list(set(index_to_url.values()))
+                url_to_b64 = batch_download_images(unique_urls, max_workers=16)
+                for idx, url in index_to_url.items():
+                    b64 = url_to_b64.get(url, "")
+                    if b64:
+                        df.loc[idx, "ImageB64"] = b64
 
             all_data.append(df[required_output_cols])
         except Exception as e:
@@ -215,11 +224,16 @@ def load_data_cached(_dummy_timestamp):
             if col not in custom_df.columns:
                 custom_df[col] = '' if col != 'IsNew' else 0
 
+        # Batch download custom product images in parallel
+        custom_urls = {}
         for idx, row in custom_df.iterrows():
             if str(row['ImageB64']).startswith('http'):
-                custom_df.at[idx, 'ImageB64'] = get_image_as_base64_str(
-                    row['ImageB64']
-                )
+                custom_urls[idx] = row['ImageB64']
+        if custom_urls:
+            unique_custom = list(set(custom_urls.values()))
+            custom_b64 = batch_download_images(unique_custom, max_workers=8)
+            for idx, url in custom_urls.items():
+                custom_df.at[idx, 'ImageB64'] = custom_b64.get(url, "")
 
         all_data.append(custom_df[required_output_cols])
 
