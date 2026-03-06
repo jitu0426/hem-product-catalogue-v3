@@ -76,9 +76,9 @@ def _render_product_list(df: pd.DataFrame, expanded: bool = False) -> None:
                     )
 
                 # Each product row
-                for _, row in sub_df.iterrows():
+                for row_idx, row in sub_df.iterrows():
                     pid         = row["ProductID"]
-                    cb_key      = f"checkbox_{pid}"
+                    cb_key      = f"checkbox_{pid}_{row_idx}"
                     in_cart     = pid in cart_pids
                     is_new      = row.get("IsNew") == 1
                     is_edited   = pid in overridden_pids
