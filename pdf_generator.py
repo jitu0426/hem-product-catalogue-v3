@@ -242,7 +242,12 @@ def generate_pdf_html(df_sorted: pd.DataFrame, customer_name: str,
 
     # Load images — use dynamic cover_url if provided, else default
     actual_cover_url = cover_url or COVER_IMAGE_URL
+    logger.info(f"Cover URL received: '{cover_url}' → using: '{actual_cover_url}'")
     cover_b64     = get_image_as_base64_str(actual_cover_url) or load_img("cover page.png")
+    if not cover_b64:
+        logger.warning(f"Failed to load cover from {actual_cover_url}, using local fallback")
+    else:
+        logger.info(f"Cover image loaded successfully ({len(cover_b64)} chars base64)")
     story_b64     = get_image_as_base64_str(JOURNEY_IMAGE_URL, max_size=(600, 600)) or \
                     load_img("image-journey.png", specific=STORY_IMG_1_PATH,
                              resize=True, max_size=(600, 600))
@@ -423,7 +428,7 @@ h1.cat-heading + .cat-block {{
 <body style="margin:0 !important;padding:0 !important;background:#ffffff !important;color:#222222 !important;">
 <div id="wm"></div>
 <div class="cover-page">
-  <img src="data:image/png;base64,{cover_b64}" alt="Cover" />
+  <img src="data:image/jpeg;base64,{cover_b64}" alt="Cover" />
 </div>
 """
 
