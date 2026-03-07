@@ -222,8 +222,10 @@ def generate_table_of_contents_html(df_sorted: pd.DataFrame) -> str:
 # FULL PDF HTML BUILDER
 # ═════════════════════════════════════════════════════════════════════════
 def generate_pdf_html(df_sorted: pd.DataFrame, customer_name: str,
-                      logo_b64: str, case_selection_map: dict) -> str:
-    """Assemble complete HTML — Cover → Story → TOC → Product pages. Plain white only."""
+                      logo_b64: str, case_selection_map: dict,
+                      cover_url: str = "") -> str:
+    """Assemble complete HTML — Cover → Story → TOC → Product pages. Plain white only.
+    cover_url: optional override for the cover image (catalogue-specific covers)."""
 
     def load_img(fname, specific=None, resize=False, max_size=(500, 500)):
         paths = []
@@ -238,8 +240,9 @@ def generate_pdf_html(df_sorted: pd.DataFrame, customer_name: str,
                 return get_image_as_base64_str(p, resize=resize, max_size=max_size)
         return ""
 
-    # Load images
-    cover_b64     = get_image_as_base64_str(COVER_IMAGE_URL) or load_img("cover page.png")
+    # Load images — use dynamic cover_url if provided, else default
+    actual_cover_url = cover_url or COVER_IMAGE_URL
+    cover_b64     = get_image_as_base64_str(actual_cover_url) or load_img("cover page.png")
     story_b64     = get_image_as_base64_str(JOURNEY_IMAGE_URL, max_size=(600, 600)) or \
                     load_img("image-journey.png", specific=STORY_IMG_1_PATH,
                              resize=True, max_size=(600, 600))

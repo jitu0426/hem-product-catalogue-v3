@@ -31,6 +31,16 @@ CASE_SIZE_PATH   = f"{GITHUB_RAW_BASE}Case%20Size.xlsx"
 COVER_IMAGE_URL  = "https://res.cloudinary.com/dnoepbfbr/image/upload/v1772175208/Cover_page_3_1.jpg"
 JOURNEY_IMAGE_URL= "https://res.cloudinary.com/dnoepbfbr/image/upload/v1772173751/JOURNEY2.jpg"
 
+# ── Catalogue-specific cover images ──────────────────────────────────────────
+# When ALL products in the cart belong to a single catalogue, use that cover.
+# Otherwise (HEM-only or mixed catalogues) → use the default COVER_IMAGE_URL.
+# Upload your cover images to Cloudinary and update these URLs.
+CATALOGUE_COVER_URLS = {
+    "Sacred Elements Catalogue": "https://res.cloudinary.com/dnoepbfbr/image/upload/v1772879218/sacred_cover.png",   # ← paste Sacred Elements cover URL here
+    "Pooja Oil Catalogue":       "https://res.cloudinary.com/dnoepbfbr/image/upload/v1772879218/pooja_cover.png",   # ← paste Pooja Oil cover URL here
+    "Candle Catalogue":          "https://res.cloudinary.com/dnoepbfbr/image/upload/v1772879372/candle_cover.png",   # ← paste Candle cover URL here
+}
+
 # ── Excel catalogue file paths ───────────────────────────────────────────────
 # Keys are the catalogue display names; values are local Excel file paths.
 CATALOGUE_PATHS = {
