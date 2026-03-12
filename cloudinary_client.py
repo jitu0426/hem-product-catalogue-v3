@@ -37,9 +37,9 @@ def init_cloudinary():
     if not secret:
         logger.warning("CLOUDINARY_API_SECRET not set - cloud features will be limited")
     cloudinary.config(
-        cloud_name = "dnoepbfbr",
-        api_key = "393756212248257",
-        api_secret = "66zA0Je4c0SKqaDcbCglsxPpYGI",
+        cloud_name = "dddtoqebz",
+        api_key = "157864912291655",
+        api_secret = "YkhyT4hxge0fh-zACddSnsI0-S4",
         secure = True
     )
 
@@ -210,3 +210,4 @@ def upload_custom_image(image_file):
     except Exception as e:
         logger.error(f"Custom image upload failed: {e}")
         return ""
+
